@@ -1,0 +1,16 @@
+# This migration creates the `potential_crufts` table
+class CreateVersions < ActiveRecord::Migration<%= migration_version %>
+  def change
+    create_table :potential_crufts do |t|
+      t.string :owner_name, null: false
+      t.string :method_name, null: false
+      t.string :method_type, null: false
+      t.integer :invocations, null: false, default: 0
+      t.timestamps
+
+      t.index :owner_name
+      t.index :method_name
+      t.index %i(owner_name method_name)
+    end
+  end
+end
