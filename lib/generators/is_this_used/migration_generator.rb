@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'rails/generators'
+require 'rails/generators/active_record'
+
 module IsThisUsed
   class MigrationGenerator < Rails::Generators::Base
     include Rails::Generators::Migration
@@ -22,13 +25,13 @@ module IsThisUsed
     end
 
     def create_potential_cruft_stacks
-      puts '>>>> got here?'
+      create_table('potential_cruft_stacks')
     end
 
     def create_table(table)
       migration_template(
         "create_#{table}.rb.erb",
-        "db/migrate/#{table}.rb",
+        "db/migrate/create_#{table}.rb",
         { migration_version: migration_version }
       )
     end

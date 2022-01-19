@@ -26,9 +26,17 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'activerecord', '>= 5.2'
 
+  spec.add_development_dependency 'appraisal', '~> 2.4.1'
   spec.add_development_dependency 'bundler', '~> 1.17'
+  spec.add_development_dependency 'generator_spec', '~> 0.9.4'
+  spec.add_development_dependency 'mysql2', '~> 0.5.3'
+  spec.add_development_dependency 'pry-byebug', '~> 3.9'
   spec.add_development_dependency 'rails', '>= 5.2'
   spec.add_development_dependency 'rake', '~> 10.0'
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'rspec-rails', '~> 5.0.2'
+  spec.add_development_dependency 'rubocop', '~> 1.22.2'
+  spec.add_development_dependency 'rubocop-rails', '~> 2.12.4'
+  spec.add_development_dependency 'rubocop-rake', '~> 0.6.0'
+  spec.add_development_dependency 'rubocop-rspec', '~> 2.5.0'
 end
