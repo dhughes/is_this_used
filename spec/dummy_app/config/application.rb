@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require File.expand_path('boot', __dir__)
-
 # Here a conventional app would load the Rails components it needs, but we have
 # already loaded these in our spec_helper.
 # require "active_record/railtie"
@@ -13,7 +11,6 @@ require File.expand_path('boot', __dir__)
 
 module Dummy
   class Application < Rails::Application
-    binding.pry
     config.load_defaults(::Rails.gem_version.segments.take(2).join('.'))
 
     config.encoding = 'utf-8'

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
-class PotentialCruftStack < ApplicationRecord
-  belongs_to :potential_cruft
+module IsThisUsed
+  class PotentialCruftStack < ActiveRecord::Base
+    belongs_to :potential_cruft, class_name: 'IsThisUsed::PotentialCruft'
+  end
 end

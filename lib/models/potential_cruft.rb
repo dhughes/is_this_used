@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
-class PotentialCruft < ApplicationRecord
-  has_many :potential_cruft_stacks
+module IsThisUsed
+  class PotentialCruft < ActiveRecord::Base
+    has_many :potential_cruft_stacks,
+             dependent: :destroy, class_name: 'IsThisUsed::PotentialCruftStack'
+  end
 end
