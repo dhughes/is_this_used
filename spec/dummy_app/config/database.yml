@@ -1,0 +1,12 @@
+test: &test
+  adapter: mysql2
+  encoding: utf8
+  database: <%= ENV.fetch('IS_THIS_USED_DATABASE', 'is_this_used') %>_test
+  pool: 5
+  username: <%= ENV.fetch('IS_THIS_USED_DB_USER', 'root') %>
+  host: <%= ENV.fetch('IS_THIS_USED_DB_HOST', 'localhost') %>
+  port: <%= ENV.fetch('IS_THIS_USED_DB_PORT', 3306) %>
+  protocol: TCP
+
+  # password deliberately blank
+  password:

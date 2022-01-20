@@ -12,3 +12,8 @@
 .idea
 
 Gemfile.lock
+
+spec/dummy/
+spec/dummy_app/db/schema.rb
+spec/dummy_app/log/*
+spec/dummy_app/tmp/*

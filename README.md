@@ -1,10 +1,16 @@
 # IsThisUsed
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library
-into a gem. Put your Ruby code in the file `lib/is_this_used`. To experiment with that code, run `bin/console` for an
-interactive prompt.
+Do you ever ask yourself, "Is this method even being used?!" Does your app use ActiveRecord? If so, this gem may be
+useful to you!
 
-TODO: Delete this and the text above, and describe your gem
+Large applications can accrue cruft; old methods that might once have been important, but are now unused. The thing is,
+software is _complex_. If the method in question was a part of a larger feature that has changed over time, or possibly
+been removed or disabled, it can be really difficult to tell if it's being used at all. It can be even worse that than.
+The method could be _tested_. 😨 That's bad because now you can tell if you break it and you'll need to maintain it, but
+you have no idea if there's any value in the time and effort to do so.
+
+The gem uses ActiveRecord to write to your database, so that's a dependency. Basically, this is really only useful for
+Rails applications at this point. Also, as of now, only MySQL is supported. Other DBs could be added in the future.
 
 ## Installation
 
@@ -16,15 +22,30 @@ gem 'is_this_used'
 
 And then execute:
 
-    $ bundle
+```
+bundle
+```
 
 Or install it yourself as:
 
-    $ gem install is_this_used
+```
+gem install is_this_used
+```
+
+You'll need to generate and run the migrations to add the required tables to your database:
+
+```bash
+bundle exec rails generate is_this_used:migrations
+bundle exec rails db:migrate 
+```
+
+This will create two tables, `potential_crufts`, which is used to collect information on the methods you're
+investigating, and `potential_cruft_stacks` which contains unique stack traces for when invocations of that method
+actually occur.
 
 ## Usage
 
-TODO: Write usage instructions here
+TODO
 
 ## Development
 
