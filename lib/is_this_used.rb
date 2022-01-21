@@ -5,6 +5,4 @@ require 'is_this_used/models/potential_cruft_stack'
 
 module IsThisUsed
   class Error < StandardError; end
-
-  # Your code goes here...
 end

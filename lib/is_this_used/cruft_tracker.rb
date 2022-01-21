@@ -84,8 +84,12 @@ module IsThisUsed
       end
 
       def determine_method_type(method_name)
-        is_instance_method = self.instance_methods.include?(method_name)
-        is_class_method = self.methods.include?(method_name)
+        is_instance_method =
+          (self.instance_methods + self.private_instance_methods).include?(
+            method_name
+          )
+        is_class_method =
+          (self.methods + self.private_methods).include?(method_name)
 
         if is_instance_method && is_class_method
           raise AmbiguousMethodType.new(self.name, method_name)

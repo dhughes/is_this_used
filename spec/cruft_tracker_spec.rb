@@ -148,4 +148,42 @@ RSpec.describe IsThisUsed::CruftTracker do
     expect(IsThisUsed::PotentialCruft.count).to eq(1)
     expect(potential_cruft.reload.invocations).to eq(2)
   end
+
+  it 'tracks private instance methods' do
+    require 'dummy_app/models/fixtures/example_cruft10'
+
+    expect(IsThisUsed::PotentialCruft.count).to eq(1)
+
+    Fixtures::ExampleCruft10.new.do_something_privately
+
+    expect(IsThisUsed::PotentialCruft.count).to eq(1)
+    cruft = IsThisUsed::PotentialCruft.first
+    expect(cruft.invocations).to eq(1)
+  end
+
+  it 'tracks protected instance methods' do
+    require 'dummy_app/models/fixtures/example_cruft11'
+
+    expect(IsThisUsed::PotentialCruft.count).to eq(1)
+
+    Fixtures::ExampleCruft11.new.do_something_protected
+
+    expect(IsThisUsed::PotentialCruft.count).to eq(1)
+    cruft = IsThisUsed::PotentialCruft.first
+    expect(cruft.invocations).to eq(1)
+  end
+
+  it 'tracks private class methods' do
+    require 'dummy_app/models/fixtures/example_cruft12'
+
+    expect(IsThisUsed::PotentialCruft.count).to eq(1)
+
+    Fixtures::ExampleCruft12.do_the_sneaky_thing
+
+    expect(IsThisUsed::PotentialCruft.count).to eq(1)
+    cruft = IsThisUsed::PotentialCruft.first
+    expect(cruft.invocations).to eq(1)
+    expect(cruft.owner_name).to eq('Fixtures::ExampleCruft12')
+    expect(cruft.method_name).to eq('be_sneaky')
+  end
 end
