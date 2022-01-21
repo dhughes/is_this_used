@@ -33,4 +33,6 @@ require_relative 'support/is_this_used_spec_migrator'
 RSpec.configure do |config|
   config.fixture_path = nil # we use factories, not fixtures
   config.use_transactional_fixtures = true
+
+  config.include ActiveSupport::Testing::TimeHelpers
 end

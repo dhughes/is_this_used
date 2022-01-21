@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'models/potential_cruft'
-require 'models/potential_cruft_stack'
+require 'is_this_used/models/potential_cruft'
+require 'is_this_used/models/potential_cruft_stack'
 
 RSpec.describe IsThisUsed::PotentialCruft do
   it 'can be persisted' do

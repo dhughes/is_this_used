@@ -35,7 +35,7 @@ gem install is_this_used
 You'll need to generate and run the migrations to add the required tables to your database:
 
 ```bash
-bundle exec rails generate is_this_used:migrations
+bundle exec rails generate is_this_used:migration
 bundle exec rails db:migrate 
 ```
 
