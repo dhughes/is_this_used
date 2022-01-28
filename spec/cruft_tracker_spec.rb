@@ -186,4 +186,23 @@ RSpec.describe IsThisUsed::CruftTracker do
     expect(cruft.owner_name).to eq('Fixtures::ExampleCruft12')
     expect(cruft.method_name).to eq('be_sneaky')
   end
+
+  context 'when the potential_crufts table does not exist' do
+    after do
+      ActiveRecord::Base.connection.execute(
+        'RENAME TABLE tmp_potential_crufts TO potential_crufts'
+      )
+    end
+
+    it 'prints a warning message' do
+      ActiveRecord::Base.connection.execute(
+        'RENAME TABLE potential_crufts TO tmp_potential_crufts'
+      )
+      expect(Rails.logger).to receive(:warn).with(
+        'There was an error recording potential cruft. Does the potential_crufts table exist?'
+      )
+
+      require 'dummy_app/models/fixtures/example_cruft13'
+    end
+  end
 end

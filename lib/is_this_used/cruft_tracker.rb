@@ -72,6 +72,12 @@ module IsThisUsed
             target_method.call(*args)
           end
         end
+      rescue ActiveRecord::StatementInvalid => e
+        raise unless e.cause.present? && e.cause.instance_of?(Mysql2::Error)
+
+        Rails.logger.warn(
+          'There was an error recording potential cruft. Does the potential_crufts table exist?'
+        )
       end
 
       def target_method(method_name, method_type)
