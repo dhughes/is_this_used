@@ -39,7 +39,9 @@ module IsThisUsed
 
       def self.filtered_stack
         caller_locations.reject do |location|
-          location.path.match?(%r{\/lib\/is_this_used\/cruft_tracker.rb$})
+          location.path.match?(
+            %r{\/lib\/is_this_used\/(cruft_tracker.rb|util\/log_suppressor.rb)$}
+          )
         end.map do |location|
           {
             path: location.path,
@@ -53,23 +55,26 @@ module IsThisUsed
 
     class_methods do
       def is_this_used?(method_name, method_type: nil)
-        method_type ||= determine_method_type(method_name)
-        target_method = target_method(method_name, method_type)
+        IsThisUsed::Util::LogSuppressor.suppress_logging do
+          method_type ||= determine_method_type(method_name)
+          target_method = target_method(method_name, method_type)
 
-        potential_cruft =
-          PotentialCruft.find_or_create_by(
-            owner_name: self.name,
-            method_name: method_name,
-            method_type: method_type
-          )
+          potential_cruft =
+            PotentialCruft.find_or_create_by(
+              owner_name: self.name,
+              method_name: method_name,
+              method_type: method_type
+            )
 
-        target_method.owner.define_method target_method.name do |*args|
-          CruftTracker::Recorder.record_invocation(potential_cruft)
-
-          if method_type == INSTANCE_METHOD
-            target_method.bind(self).call(*args)
-          else
-            target_method.call(*args)
+          target_method.owner.define_method target_method.name do |*args|
+            IsThisUsed::Util::LogSuppressor.suppress_logging do
+              CruftTracker::Recorder.record_invocation(potential_cruft)
+            end
+            if method_type == INSTANCE_METHOD
+              target_method.bind(self).call(*args)
+            else
+              target_method.call(*args)
+            end
           end
         end
       rescue ActiveRecord::StatementInvalid => e
