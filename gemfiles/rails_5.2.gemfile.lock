@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    is_this_used (0.1.1)
+    is_this_used (0.1.2)
       activerecord (>= 5.2)
 
 GEM
