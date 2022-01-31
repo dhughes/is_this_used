@@ -2,8 +2,6 @@
 
 module IsThisUsed
   module CruftTracker
-    extend ActiveSupport::Concern
-
     INSTANCE_METHOD = 'instance_method'
     CLASS_METHOD = 'class_method'
 
@@ -53,7 +51,11 @@ module IsThisUsed
       end
     end
 
-    class_methods do
+    def self.included(base)
+      base.extend ClassMethods
+    end
+
+    module ClassMethods
       def is_this_used?(method_name, method_type: nil)
         IsThisUsed::Util::LogSuppressor.suppress_logging do
           method_type ||= determine_method_type(method_name)
