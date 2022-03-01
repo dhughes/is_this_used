@@ -85,7 +85,7 @@ module IsThisUsed
         Rails.logger.warn(
           'There was an error recording potential cruft. Does the potential_crufts table exist?'
         )
-      rescue Mysql2::Error::ConnectionError
+      rescue Mysql2::Error::ConnectionError, ActiveRecord::ConnectionNotEstablished
         Rails.logger.warn(
           'There was an error recording potential cruft due to being unable to connect to the database. This may be a non-issue in cases where the database is intentionally not available.'
         )
