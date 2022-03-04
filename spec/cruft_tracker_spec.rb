@@ -4,6 +4,7 @@ require 'spec_helper'
 require 'is_this_used/cruft_tracker'
 require 'is_this_used/models/potential_cruft'
 require 'is_this_used/models/potential_cruft_stack'
+require 'is_this_used/models/potential_cruft_argument'
 
 RSpec.describe IsThisUsed::CruftTracker do
   it 'creates potential cruft records before methods are invoked' do
@@ -203,6 +204,85 @@ RSpec.describe IsThisUsed::CruftTracker do
       )
 
       require 'dummy_app/models/fixtures/example_cruft13'
+    end
+  end
+
+  context 'when track_arguments is not provided' do
+    it 'does not track arguments' do
+      require 'dummy_app/models/fixtures/example_cruft15'
+
+      example = Fixtures::ExampleCruft15.new
+      example.do_something(1, "blargh", true, [2, "baz", false], [{ a: 1, b: "bar" }, { a: 2, b: "foo" }], x: 213, y: true, z: "whatever")
+
+      expect(IsThisUsed::PotentialCruft.count).to eq(1)
+      potential_cruft = IsThisUsed::PotentialCruft.first
+      expect(potential_cruft.potential_cruft_arguments.count).to eq(0)
+    end
+  end
+
+  context 'when track_arguments is false' do
+    it 'does not track arguments' do
+      require 'dummy_app/models/fixtures/example_cruft16'
+
+      example = Fixtures::ExampleCruft16.new
+      example.do_something(1, "blargh", true, [2, "baz", false], [{ a: 1, b: "bar" }, { a: 2, b: "foo" }], x: 213, y: true, z: "whatever")
+
+      expect(IsThisUsed::PotentialCruft.count).to eq(1)
+      potential_cruft = IsThisUsed::PotentialCruft.first
+      expect(potential_cruft.potential_cruft_arguments.count).to eq(0)
+    end
+  end
+
+  context 'when track_arguments is not provided' do
+    it 'does not tracks arguments provided to the method' do
+      require 'dummy_app/models/fixtures/example_cruft18'
+
+      example = Fixtures::ExampleCruft18.new
+      example.do_something(1, "blargh", true, [2, "baz", false], [{ a: 1, b: "bar" }, { a: 2, b: "foo" }], x: 213, y: true, z: "whatever")
+      example.do_something(2, "blargh", true, [2, "baz", false], [{ a: 1, b: "bar" }, { a: 2, b: "foo" }], x: 213, y: true, z: "whatever")
+      example.do_something(2, "blargh", true, [2, "baz", false], [{ a: 1, b: "bar" }, { a: 2, b: "foo" }], x: 213, y: true, z: "whatever")
+
+      expect(IsThisUsed::PotentialCruft.count).to eq(1)
+      potential_cruft = IsThisUsed::PotentialCruft.first
+      expect(potential_cruft.potential_cruft_arguments.count).to eq(0)
+    end
+  end
+
+  context 'when track_arguments is true' do
+    it 'tracks distinct arguments provided to the method' do
+      require 'dummy_app/models/fixtures/example_cruft14'
+
+      example = Fixtures::ExampleCruft14.new
+      example.do_something(1, "blargh", true, [2, "baz", false], [{ a: 1, b: "bar" }, { a: 2, b: "foo" }], x: 213, y: true, z: "whatever")
+      example.do_something(2, "blargh", true, [2, "baz", false], [{ a: 1, b: "bar" }, { a: 2, b: "foo" }], x: 213, y: true, z: "whatever")
+      example.do_something(2, "blargh", true, [2, "baz", false], [{ a: 1, b: "bar" }, { a: 2, b: "foo" }], x: 213, y: true, z: "whatever")
+
+      expect(IsThisUsed::PotentialCruft.count).to eq(1)
+      potential_cruft = IsThisUsed::PotentialCruft.first
+      expect(potential_cruft.potential_cruft_arguments.count).to eq(2)
+      arguments1 = potential_cruft.potential_cruft_arguments.first
+      expect(arguments1.arguments).to eq([1, "blargh", true, [2, "baz", false], [{"a"=>1, "b"=>"bar"}, {"a"=>2, "b"=>"foo"}], {"x"=>213, "y"=>true, "z"=>"whatever"}])
+      expect(arguments1.occurrences).to eq(1)
+      arguments2 = potential_cruft.potential_cruft_arguments.second
+      expect(arguments2.arguments).to eq([2, "blargh", true, [2, "baz", false], [{ "a" => 1, "b" => "bar" }, { "a" => 2, "b" => "foo" }], { "x" => 213, "y" => true, "z" => "whatever" }])
+      expect(arguments2.occurrences).to eq(2)
+    end
+  end
+
+  context 'when track_arguments is a lambda' do
+    it 'tracks distinct transformed arguments provided to the method' do
+      require 'dummy_app/models/fixtures/example_cruft17'
+
+      example = Fixtures::ExampleCruft17.new
+      example.do_something(1, "blargh", true, [2, "baz", false], [{ a: 1, b: "bar" }, { a: 2, b: "foo" }], x: 213, z: "whatever", y: true)
+      example.do_something(2, "kapow!", true, [2, "baz", false], [{ a: 1, b: "bar" }, { a: 2, b: "foo" }], x: 213, z: "whatever", y: true)
+      example.do_something(2, "zappo?", true, [2, "baz", false], [{ a: 1, b: "bar" }, { a: 2, b: "foo" }], x: 213, z: "whatever", y: true)
+
+      expect(IsThisUsed::PotentialCruft.count).to eq(1)
+      potential_cruft = IsThisUsed::PotentialCruft.first
+      expect(potential_cruft.potential_cruft_arguments.count).to eq(1)
+      arguments1 = potential_cruft.potential_cruft_arguments.first
+      expect(arguments1.arguments).to eq(%w[x y z])
     end
   end
 end

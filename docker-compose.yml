@@ -1,0 +1,39 @@
+version: '3'
+services:
+  mysql:
+    image: mysql:8
+    container_name: square-mysql
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: dev
+      MYSQL_DATABASE: is_this_used_test
+    ports:
+      - "13306:3306"
+
+  ruby:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    depends_on:
+      - mysql
+    working_dir: /app
+    volumes:
+      - .:/app
+      - bundle:/bundle
+      - ./wait-for-it.sh:/usr/sbin/wait-for-it.sh:ro
+    environment:
+      - IS_THIS_USED_DATABASE=is_this_used_test
+      - IS_THIS_USED_DB_USER=root
+      - IS_THIS_USED_DB_HOST=mysql
+      - IS_THIS_USED_DB_PASSWORD=dev
+    links:
+      - mysql
+    tty: true
+    stdin_open: true
+
+volumes:
+  db_data:
+  bundle:
+

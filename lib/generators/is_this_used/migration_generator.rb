@@ -12,6 +12,7 @@ module IsThisUsed
     def create_migration_file
       create_potential_crufts
       create_potential_cruft_stacks
+      create_potential_cruft_arguments
     end
 
     def self.next_migration_number(dirname)
@@ -26,6 +27,10 @@ module IsThisUsed
 
     def create_potential_cruft_stacks
       create_table('potential_cruft_stacks')
+    end
+
+    def create_potential_cruft_arguments
+      create_table('potential_cruft_arguments')
     end
 
     def create_table(table)

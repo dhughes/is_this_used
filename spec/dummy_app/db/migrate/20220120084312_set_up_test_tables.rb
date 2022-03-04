@@ -25,6 +25,14 @@ class SetUpTestTables < ::ActiveRecord::Migration::Current
       t.integer :occurrences, null: false, index: true, default: 0
       t.timestamps
     end
+
+    create_table :potential_cruft_arguments do |t|
+      t.references :potential_cruft, null: false
+      t.string :arguments_hash, null: false, index: true
+      t.json :arguments, null: false
+      t.integer :occurrences, null: false, index: true, default: 0
+      t.timestamps
+    end
   end
 
   def down
