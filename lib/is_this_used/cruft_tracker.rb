@@ -49,6 +49,25 @@ module IsThisUsed
           }
         end
       end
+
+      def self.record_arguments(potential_cruft, arguments)
+        arguments_hash = Digest::MD5.hexdigest(arguments.to_json)
+
+        potential_cruft_argument =
+          PotentialCruftArgument.find_by(
+            potential_cruft: potential_cruft, arguments_hash: arguments_hash
+          )
+        potential_cruft_argument ||=
+          PotentialCruftArgument.new(
+            potential_cruft: potential_cruft,
+            arguments_hash: arguments_hash,
+            arguments: arguments
+          )
+
+        potential_cruft_argument.occurrences += 1
+
+        potential_cruft_argument.save
+      end
     end
 
     def self.included(base)
@@ -56,7 +75,7 @@ module IsThisUsed
     end
 
     module ClassMethods
-      def is_this_used?(method_name, method_type: nil)
+      def is_this_used?(method_name, method_type: nil, track_arguments: false)
         IsThisUsed::Util::LogSuppressor.suppress_logging do
           method_type ||= determine_method_type(method_name)
           target_method = target_method(method_name, method_type)
@@ -71,6 +90,11 @@ module IsThisUsed
           target_method.owner.define_method target_method.name do |*args|
             IsThisUsed::Util::LogSuppressor.suppress_logging do
               CruftTracker::Recorder.record_invocation(potential_cruft)
+              if track_arguments
+                arguments = track_arguments.instance_of?(Proc) ? track_arguments.call(args) : args
+
+                CruftTracker::Recorder.record_arguments(potential_cruft, arguments)
+              end
             end
             if method_type == INSTANCE_METHOD
               target_method.bind(self).call(*args)

@@ -63,5 +63,29 @@ RSpec.describe IsThisUsed::MigrationGenerator, type: :generator do
         end
       )
     end
+
+    it "generates a migration for creating the 'potential_cruft_arguments' table" do
+      expected_parent_class = lambda do
+        ar_class = 'ActiveRecord::Migration'
+        ar_version = ActiveRecord::VERSION
+        format('%s[%d.%d]', ar_class, ar_version::MAJOR, ar_version::MINOR)
+      end.call
+
+      expect(destination_root).to(
+        have_structure do
+          directory('db') do
+            directory('migrate') do
+              migration('create_potential_cruft_arguments') do
+                contains(
+                  'class CreatePotentialCruftArguments < ' + expected_parent_class
+                )
+                contains 'def change'
+                contains 'create_table :potential_cruft_arguments'
+              end
+            end
+          end
+        end
+      )
+    end
   end
 end

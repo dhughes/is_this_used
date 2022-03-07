@@ -59,7 +59,6 @@ You're unsure if the `some_old_method` method is actually being used. You only n
 Here's an example:
 
 ```ruby
-
 class SomeOldClass
   include IsThisUsed::CruftTracker
 
@@ -76,7 +75,7 @@ in the `potential_crufts` table that looks like this:
 
 | id  | owner_name   | method_name     | method_type     | invocations | created_at          | updated_at          |
 | --- | ------------ | --------------- | --------------- | ----------- | ------------------- | ------------------- |
-| 1   | SomeOldClass | some_old_method | instance_method | 0           | 2022-01-21 14:07:48 | 2022-01-21 14:07:48 | 
+| 1   | SomeOldClass | some_old_method | instance_method | 0           | 2022-01-21 14:07:48 | 2022-01-21 14:07:48 |
 
 This is easily accessed using the `IsThisUsed::PotentialCruft` model class.
 
@@ -89,7 +88,7 @@ The fields are:
   constants, `IsThisUsed::CruftTracker::INSTANCE_METHOD` and `IsThisUsed::CruftTracker::CLASS_METHOD`.
 - `invocations` - The number of times the method has been invoked.
 - `created_at` - The date/time we started tracking the method.
-- `updated_at` - The last time this record was updated.
+- `updated_at` - The last time this record was updated. IE: the last time the tracked method was invoked.
 
 Looking at this, we can see that the `some_old_method` method has never been invoked. This is nice because it means that
 you can track uses of methods without changing their behavior. A similar record is created for every method you annotate
@@ -98,9 +97,11 @@ with `is_this_used?`.
 Assuming your production application eagerly loads classes, you should always have records for potentially crufty
 methods, even if the class itself is never explicitly used.
 
-So, having annotate the method, you can check this table after a while. If you see that there have been zero invocations
+So, having annotated the method, you can check this table after a while. If you see that there have been zero invocations,
 you have a reasonably good hint that the method may not actually be used. Of course, you should consider that there are
 some processes that are not run frequently at all, so this gem isn't a panacea. Think before you delete!
+
+### Tracking Stacks
 
 In the case that a method _is_ actually invoked, the `invocations` value is incremented and a record is created in
 the `potential_cruft_stacks` table for each unique invocation stacktrace. This can be used to determine which methods
@@ -113,11 +114,11 @@ the `potential_cruft_stacks` table:
 - `stack_hash` - This is an MD5 hash of the stack trace for the method's invocation. This is indexed for speedy lookups
   of stacks.
 - `stack` - This is a JSON field that stores an array of hashes (more on this in a sec) that is the stack trace for the
-  method invocation. You can potentially use this to figure out what other methods and blocks involved in calling the
+  method invocation. You can potentially use this to figure out what other methods and blocks are involved in calling the
   not-actually-crufty method.
 - `occurrences` - This is the number of times the method has been invoked with exactly the same stack.
 - `created_at` - The date/time we first saw this stack.
-- `updated_at` - The last time this saw this stack.
+- `updated_at` - The last time we saw this stack.
 
 As a note, if any of the files referenced in the stack are edited sufficiently to change line numbers, the stack will be
 different and a new record will be created.
@@ -146,7 +147,58 @@ The `label` and `base_label` fields come from Ruby's `Thread::Backtrace::Locatio
 difference is, as the docs simply say this about `base_label`: "Usually same as label, without decoration". 🤷 Anyhow,
 it's there if you need it.
 
-The `IsThisUsed::PotentialCruftStack` model is handy for accessing this data.
+### Tracking Arguments
+
+In addition to tracking stacks, you can track details about arguments provided to tracked methods. For example, let's say you have the following method:
+
+```ruby
+def some_old_method(arg1, arg2)
+  # do things
+end
+```
+
+Let's say that, for some reason you want to know what arguments are provided to this method. You could add `track_arguments: true` to your `is_this_used?` invocation like so:
+
+```ruby
+is_this_used? :some_old_method, track_arguments: true
+```
+
+Now, as `some_old_method` is invoked, a record will be created in `potential_cruft_arguments` for each unique set of arguments. Similar to `potential_cruft_stacks`, the record contains a hash of the JSON-serialized arguments, the JSON-serialized arguments, and the number of occurrences of the particular combination of arguments.
+
+Tracking all arguments might be a really bad idea. Let's say your method actually gets invoked a lot and receives lots of different combinations of arguments, you could be writing a lot of potentially useless information into the `potential_cruft_arguments` table. For this reason arguments are not tracked by default.
+
+Instead of tracking all arguments, you can also provide a lambda to `track_arguments` to track only specific details about arguments. The lambda will receive an array of arguments that were provided to the tracked method. Whatever is returned from the lambda is what is tracked in the `potential_cruft_arguments` table. This might be useful in a situation where you have a method that receives an options hash. Maybe you want to know what keys are in that options hash. You could track the unique combination of keys like this:
+
+```ruby
+def ye_olde_method(some_argument, options_hash)
+  # do things
+end
+
+is_this_used? :some_old_method, track_arguments: ->(args) { args.last.keys.sort }
+```
+
+As `ye_olde_method` is invoked is_this_used will track the unique combination of keys in the `options_hash`. Let's say it's invoked as follows:
+
+
+```ruby
+ye_olde_method("Fred", favorite_color: "blue", locality: 'Antartica')
+ye_olde_method("Zelda", locality: 'Hyrule', favorite_color: "green")
+ye_olde_method("Korg", color: 'Rebecca Purple', locality: 'Sakaar')
+ye_olde_method("Liz", status: :favorite_person)
+```
+
+The above would result in the following records in `potential_cruft_arguments` (ignoring the id, potential cruft reference, and timestamps):
+
+| arguments_hash                   | arguments                      | occurrences |
+| -------------------------------- | ------------------------------ | ----------- |
+| d5d98f761a14b1845a74ce3f1a298c98 | ["favorite_color", "locality"] | 2           |
+| 1619ec6af47253461e87ebf1923a8a83 | ["color", "locality"]          | 1           |
+| 88c8205498de97d4ef06b249006bb68b | ["status"]                     | 1           |
+
+
+
+
+## Models
 
 ### `IsThisUsed::PotentialCruft`
 
@@ -157,6 +209,10 @@ invocations of the method, if any.
 
 This is a model representing potential cruft stacks. Its `potential_cruft` method provides an association back to the
 owning potentially-crufty method.
+
+### `IsThisUsed::PotentialCruftArgument`
+
+This model represents information about arguments provided to a specific `potential_cruft` method. It is conditionally populated when the `track_arguments` method is provided with either true or a lambda.
 
 ## Dependencies
 
@@ -207,6 +263,37 @@ bundle exec appraisal rails-6.0 rake
 ### Rails 6.1
 
 bundle exec appraisal rails-6.1 rake
+
+## Developing with Docker
+
+A Docker / docker-compose environment is available to simplify development. Assuming you already have Docker installed, you can spin up a MySQL and open a bash console on a container with Ruby installed like this:
+
+```bash
+docker-compose run --rm ruby bash
+```
+
+The MySQL server has its port exposed as 13306. Note that the first time you spin up these containers it may take a moment for mysql to successfully spin up.
+
+The gem's source is mapped to `/app`, which is also the working directory.
+
+Once you have a bash console open, you can install dependencies with:
+
+```bash
+bundle install
+bundle exec appraisal install
+```
+
+You can copy the provided MySQL DB config file to be the one to use in the test app:
+
+```bash
+cp spec/dummy_app/config/database.mysql.yml spec/dummy_app/config/database.yml
+```
+
+And now you should be able to run tests against whichever version of Rails you wish, like so:
+
+```bash
+bundle exec appraisal rails-6.1 rake
+```
 
 ## Contributing
 
