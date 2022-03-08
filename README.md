@@ -1,4 +1,4 @@
-Have you ever asked yourself, "Is this method even being used?!" Does your application use ActiveRecord? If the answers
+Have you ever asked yourself, "Is this method even being used?!" Does your application use Rails and ActiveRecord? If the answers
 to these two questions are yes, this gem may be of use to you!
 
 Large applications can accrue cruft; old methods that might once have been important, but are now unused. Unfortunately,
@@ -217,6 +217,7 @@ This model represents information about arguments provided to a specific `potent
 
 ## Dependencies
 
+* Rails - Versions 5.2, 6, and 6.1 are supported.
 * ActiveRecord - ActiveRecord is used to persist information about potentially crufty methods. This gem should happily
   work with AR 5.2, 6, and 6.1.
 * MySQL - As of now, only MySQL is supported. PRs are welcome to add support for Postgres, etc.

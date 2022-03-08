@@ -5,7 +5,7 @@ module IsThisUsed
     initializer "is_this_used_railtie.configure_post_initialize_cleanup" do
 
       config.after_initialize do
-        IsThisUsed::CruftCleaner.new.clean🧹
+        IsThisUsed::CruftCleaner.clean🧹
       end
 
     rescue StandardError

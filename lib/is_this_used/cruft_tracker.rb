@@ -87,6 +87,8 @@ module IsThisUsed
               method_type: method_type
             )
 
+          IsThisUsed::Registry.instance << potential_cruft
+
           target_method.owner.define_method target_method.name do |*args|
             IsThisUsed::Util::LogSuppressor.suppress_logging do
               CruftTracker::Recorder.record_invocation(potential_cruft)

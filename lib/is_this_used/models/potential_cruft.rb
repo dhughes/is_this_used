@@ -11,6 +11,16 @@ module IsThisUsed
       class_still_exists? && method_still_exists?
     end
 
+    def still_tracked?
+      IsThisUsed::Registry.instance.include?(self)
+    end
+
+    def ==(other)
+      other.owner_name == owner_name &&
+        other.method_name == method_name &&
+        other.method_type == method_type
+    end
+
     private
 
     def class_still_exists?

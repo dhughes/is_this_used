@@ -4,6 +4,7 @@ require 'spec_helper'
 require 'is_this_used/models/potential_cruft'
 require 'is_this_used/models/potential_cruft_stack'
 require 'dummy_app/models/fixtures/example_cruft19'
+require 'dummy_app/models/fixtures/example_cruft20'
 
 RSpec.describe IsThisUsed::PotentialCruft do
   it 'can be persisted' do
@@ -139,6 +140,34 @@ RSpec.describe IsThisUsed::PotentialCruft do
         )
 
         expect(potential_cruft.still_exists?).to eq(true)
+      end
+    end
+  end
+
+  describe '#still_tracked?' do
+    context 'when it is still tracked' do
+      it 'is true' do
+        potential_cruft = IsThisUsed::PotentialCruft.create(
+          owner_name: 'Fixtures::ExampleCruft19',
+          method_name: 'do_something',
+          method_type: IsThisUsed::CruftTracker::INSTANCE_METHOD,
+          invocations: 123
+        )
+
+        expect(potential_cruft.still_tracked?).to eq(true)
+      end
+    end
+
+    context 'when it is no longer tracked' do
+      it 'is false' do
+        potential_cruft = IsThisUsed::PotentialCruft.create(
+          owner_name: 'Fixtures::ExampleCruft20',
+          method_name: 'do_something',
+          method_type: IsThisUsed::CruftTracker::INSTANCE_METHOD,
+          invocations: 123
+        )
+
+        expect(potential_cruft.still_tracked?).to eq(false)
       end
     end
   end

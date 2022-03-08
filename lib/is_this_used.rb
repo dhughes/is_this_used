@@ -1,6 +1,7 @@
 require 'is_this_used/version'
 require 'is_this_used/cruft_tracker'
 require 'is_this_used/cruft_cleaner'
+require 'is_this_used/registry'
 require 'is_this_used/models/potential_cruft'
 require 'is_this_used/models/potential_cruft_stack'
 require 'is_this_used/models/potential_cruft_argument'

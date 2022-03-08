@@ -35,4 +35,12 @@ RSpec.configure do |config|
   config.use_transactional_fixtures = true
 
   config.include ActiveSupport::Testing::TimeHelpers
+
+  config.before :all do
+    IsThisUsed::PotentialCruft.destroy_all
+  end
+
+  config.after :all do
+    IsThisUsed::PotentialCruft.destroy_all
+  end
 end
