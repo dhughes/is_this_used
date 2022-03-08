@@ -8,3 +8,6 @@ require 'is_this_used/util/log_suppressor'
 module IsThisUsed
   class Error < StandardError; end
 end
+
+require 'is_this_used/railtie' if defined?(Rails)
+
