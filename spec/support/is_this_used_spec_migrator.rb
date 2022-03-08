@@ -10,6 +10,8 @@
 #
 # The above may indicate that we should use `Migrator` instead of
 # MigrationContext.
+require 'active_support'
+require 'active_record'
 require 'active_record/migration'
 
 # Manage migrations including running generators to build them, and cleaning up strays

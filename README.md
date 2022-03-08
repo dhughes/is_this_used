@@ -1,4 +1,4 @@
-Have you ever asked yourself, "Is this method even being used?!" Does your application use ActiveRecord? If the answers
+Have you ever asked yourself, "Is this method even being used?!" Does your application use Rails and ActiveRecord? If the answers
 to these two questions are yes, this gem may be of use to you!
 
 Large applications can accrue cruft; old methods that might once have been important, but are now unused. Unfortunately,
@@ -73,9 +73,9 @@ end
 What do you get out of this? Well, as soon as Ruby loads the `SomeOldClass` class, is_this_used will create a new record
 in the `potential_crufts` table that looks like this:
 
-| id  | owner_name   | method_name     | method_type     | invocations | created_at          | updated_at          |
-| --- | ------------ | --------------- | --------------- | ----------- | ------------------- | ------------------- |
-| 1   | SomeOldClass | some_old_method | instance_method | 0           | 2022-01-21 14:07:48 | 2022-01-21 14:07:48 |
+| id  | owner_name   | method_name     | method_type     | invocations | deleted_at | created_at          | updated_at          |
+| --- | ------------ | --------------- | --------------- | ----------- | ---------- | ------------------- | ------------------- |
+| 1   | SomeOldClass | some_old_method | instance_method | 0           | null       | 2022-01-21 14:07:48 | 2022-01-21 14:07:48 | 
 
 This is easily accessed using the `IsThisUsed::PotentialCruft` model class.
 
@@ -87,6 +87,7 @@ The fields are:
 - `method_type` - This is either "instance_method" or "class_method", which are the values of the corresponding
   constants, `IsThisUsed::CruftTracker::INSTANCE_METHOD` and `IsThisUsed::CruftTracker::CLASS_METHOD`.
 - `invocations` - The number of times the method has been invoked.
+- `deleted_at` - When set, this indicates that the method is no longer being tracked.
 - `created_at` - The date/time we started tracking the method.
 - `updated_at` - The last time this record was updated. IE: the last time the tracked method was invoked.
 
@@ -216,6 +217,7 @@ This model represents information about arguments provided to a specific `potent
 
 ## Dependencies
 
+* Rails - Versions 5.2, 6, and 6.1 are supported.
 * ActiveRecord - ActiveRecord is used to persist information about potentially crufty methods. This gem should happily
   work with AR 5.2, 6, and 6.1.
 * MySQL - As of now, only MySQL is supported. PRs are welcome to add support for Postgres, etc.

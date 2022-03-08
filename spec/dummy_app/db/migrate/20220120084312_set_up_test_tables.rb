@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 # This migration must be kept in sync with
+# `lib/generators/is_this_used/templates/create_potential_cruft_arguments.rb.erb`
 # `lib/generators/is_this_used/templates/create_potential_cruft_stacks.rb.erb`
 # `lib/generators/is_this_used/templates/create_potential_crufts.rb.erb`
 #
@@ -11,6 +12,7 @@ class SetUpTestTables < ::ActiveRecord::Migration::Current
       t.string :method_name, null: false
       t.string :method_type, null: false
       t.integer :invocations, null: false, default: 0
+      t.datetime :deleted_at
       t.timestamps
 
       t.index :owner_name
