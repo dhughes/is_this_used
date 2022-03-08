@@ -8,6 +8,9 @@ module IsThisUsed
           potential_cruft.update(deleted_at: Time.current)
         end
       end
+    rescue StandardError
+      # I'm actively ignoring all errors. Chances are, these are due to something like running rake
+      # tasks in CI when the DB doesn't already exist.
     end
   end
 end
