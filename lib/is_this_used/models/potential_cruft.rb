@@ -6,5 +6,29 @@ module IsThisUsed
              dependent: :destroy, class_name: 'IsThisUsed::PotentialCruftStack'
     has_many :potential_cruft_arguments,
              dependent: :destroy, class_name: 'IsThisUsed::PotentialCruftArgument'
+
+    def still_exists?
+      class_still_exists? && method_still_exists?
+    end
+
+    private
+
+    def class_still_exists?
+      Object.const_defined?(owner_name)
+    end
+
+    def clazz
+      owner_name.constantize
+    end
+
+    def method_still_exists?
+      case method_type
+      when IsThisUsed::CruftTracker::INSTANCE_METHOD
+        (clazz.instance_methods + clazz.private_instance_methods)
+      when IsThisUsed::CruftTracker::CLASS_METHOD
+        (clazz.methods + clazz.private_methods)
+      end.
+        include?(method_name.to_sym)
+    end
   end
 end

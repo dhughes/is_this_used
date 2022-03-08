@@ -2,14 +2,12 @@
 
 module IsThisUsed
   class Railtie < Rails::Railtie
-    initializer "is_this_used_railtie.configure_rails_initialization" do
-      # some initialization behavior
-      puts ">>>> got here maybe?"
+    initializer "is_this_used_railtie.configure_post_initialize_cleanup" do
 
       config.after_initialize do
-        puts ">>>> we've initialized?"
-        puts ">>>> num of cruft: #{IsThisUsed::PotentialCruft.count}"
+        IsThisUsed::CruftCleaner.new.clean🧹
       end
+
     rescue StandardError
       # Swallow all errors to prevent initialization failures.
     end

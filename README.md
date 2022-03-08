@@ -73,9 +73,9 @@ end
 What do you get out of this? Well, as soon as Ruby loads the `SomeOldClass` class, is_this_used will create a new record
 in the `potential_crufts` table that looks like this:
 
-| id  | owner_name   | method_name     | method_type     | invocations | created_at          | updated_at          |
-| --- | ------------ | --------------- | --------------- | ----------- | ------------------- | ------------------- |
-| 1   | SomeOldClass | some_old_method | instance_method | 0           | 2022-01-21 14:07:48 | 2022-01-21 14:07:48 |
+| id  | owner_name   | method_name     | method_type     | invocations | deleted_at | created_at          | updated_at          |
+| --- | ------------ | --------------- | --------------- | ----------- | ---------- | ------------------- | ------------------- |
+| 1   | SomeOldClass | some_old_method | instance_method | 0           | null       | 2022-01-21 14:07:48 | 2022-01-21 14:07:48 | 
 
 This is easily accessed using the `IsThisUsed::PotentialCruft` model class.
 
@@ -87,6 +87,7 @@ The fields are:
 - `method_type` - This is either "instance_method" or "class_method", which are the values of the corresponding
   constants, `IsThisUsed::CruftTracker::INSTANCE_METHOD` and `IsThisUsed::CruftTracker::CLASS_METHOD`.
 - `invocations` - The number of times the method has been invoked.
+- `deleted_at` - When set, this indicates that the method is no longer being tracked.
 - `created_at` - The date/time we started tracking the method.
 - `updated_at` - The last time this record was updated. IE: the last time the tracked method was invoked.
 
@@ -249,12 +250,6 @@ cp config/database.mysql.yml config/database.yml
 ```
 
 Edit the database.yml as needed and fire up your MySQL server.
-
-You'll need to create your database (it doesn't matter which version of rails you specify):
-
-```bash
-bundle exec appraisal rails-6.1 rspec spec
-```
 
 You can now run the test suite:
 
