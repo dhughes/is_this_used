@@ -10,7 +10,7 @@
 # Bundler.require(:default, Rails.env)
 
 module Dummy
-  class Application < Rails::Application
+  class Application < ::Rails::Application
     config.load_defaults(::Rails.gem_version.segments.take(2).join('.'))
 
     config.encoding = 'utf-8'

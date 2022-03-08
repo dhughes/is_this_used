@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    is_this_used (0.1.5)
+    is_this_used (0.1.7)
       activerecord (>= 5.2)
 
 GEM
@@ -78,6 +78,11 @@ GEM
     crass (1.0.6)
     diff-lcs (1.5.0)
     erubi (1.10.0)
+    factory_bot (6.2.0)
+      activesupport (>= 5.0.0)
+    factory_bot_rails (6.2.0)
+      factory_bot (~> 6.2.0)
+      railties (>= 5.0.0)
     generator_spec (0.9.4)
       activesupport (>= 3.0.0)
       railties (>= 3.0.0)
@@ -206,6 +211,7 @@ PLATFORMS
 DEPENDENCIES
   appraisal (~> 2.4.1)
   bundler (~> 2.1)
+  factory_bot_rails (~> 6.2)
   generator_spec (~> 0.9.4)
   is_this_used!
   mysql2 (~> 0.5.3)

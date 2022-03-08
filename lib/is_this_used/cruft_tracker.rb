@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'is_this_used/cruft_cleaner'
+
 module IsThisUsed
   module CruftTracker
     INSTANCE_METHOD = 'instance_method'
@@ -72,6 +74,8 @@ module IsThisUsed
 
     def self.included(base)
       base.extend ClassMethods
+
+      IsThisUsed::CruftCleaner.clean✨
     end
 
     module ClassMethods

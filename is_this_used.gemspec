@@ -28,6 +28,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'appraisal', '~> 2.4.1'
   spec.add_development_dependency 'bundler', '~> 2.1'
+  spec.add_development_dependency 'factory_bot_rails', '~> 6.2'
   spec.add_development_dependency 'generator_spec', '~> 0.9.4'
   spec.add_development_dependency 'mysql2', '~> 0.5.3'
   spec.add_development_dependency 'pry-byebug', '~> 3.9'

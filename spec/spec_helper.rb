@@ -24,6 +24,7 @@ Bundler.setup
 require 'active_record/railtie'
 require 'is_this_used'
 require 'rspec/rails'
+require 'factory_bot_rails'
 require File.expand_path('dummy_app/config/environment', __dir__)
 
 # Now that AR has a connection pool, we can migrate the database.
@@ -31,6 +32,8 @@ require_relative 'support/is_this_used_spec_migrator'
 ::IsThisUsedSpecMigrator.new.migrate
 
 RSpec.configure do |config|
+  config.include FactoryBot::Syntax::Methods
+
   config.fixture_path = nil # we use factories, not fixtures
   config.use_transactional_fixtures = true
 

@@ -15,14 +15,14 @@ RSpec.describe IsThisUsed::CruftTracker do
       IsThisUsed::PotentialCruft.find_by(method_name: :jump_up_and_down)
     expect(jump_up_and_down_method.owner_name).to eq('Fixtures::ExampleCruft1')
     expect(jump_up_and_down_method.method_type).to eq(
-      IsThisUsed::CruftTracker::CLASS_METHOD
-    )
+                                                     IsThisUsed::CruftTracker::CLASS_METHOD
+                                                   )
     expect(jump_up_and_down_method.invocations).to eq(0)
     hello_method = IsThisUsed::PotentialCruft.find_by(method_name: :hello)
     expect(hello_method.owner_name).to eq('Fixtures::ExampleCruft1')
     expect(hello_method.method_type).to eq(
-      IsThisUsed::CruftTracker::INSTANCE_METHOD
-    )
+                                          IsThisUsed::CruftTracker::INSTANCE_METHOD
+                                        )
     expect(hello_method.invocations).to eq(0)
   end
 
@@ -261,7 +261,7 @@ RSpec.describe IsThisUsed::CruftTracker do
       potential_cruft = IsThisUsed::PotentialCruft.first
       expect(potential_cruft.potential_cruft_arguments.count).to eq(2)
       arguments1 = potential_cruft.potential_cruft_arguments.first
-      expect(arguments1.arguments).to eq([1, "blargh", true, [2, "baz", false], [{"a"=>1, "b"=>"bar"}, {"a"=>2, "b"=>"foo"}], {"x"=>213, "y"=>true, "z"=>"whatever"}])
+      expect(arguments1.arguments).to eq([1, "blargh", true, [2, "baz", false], [{ "a" => 1, "b" => "bar" }, { "a" => 2, "b" => "foo" }], { "x" => 213, "y" => true, "z" => "whatever" }])
       expect(arguments1.occurrences).to eq(1)
       arguments2 = potential_cruft.potential_cruft_arguments.second
       expect(arguments2.arguments).to eq([2, "blargh", true, [2, "baz", false], [{ "a" => 1, "b" => "bar" }, { "a" => 2, "b" => "foo" }], { "x" => 213, "y" => true, "z" => "whatever" }])
@@ -283,6 +283,51 @@ RSpec.describe IsThisUsed::CruftTracker do
       expect(potential_cruft.potential_cruft_arguments.count).to eq(1)
       arguments1 = potential_cruft.potential_cruft_arguments.first
       expect(arguments1.arguments).to eq(%w[x y z])
+    end
+  end
+
+  context 'when the cruft tracker is included for the first time' do
+    context "when a pre-existing potential cruft record references a class that does not exists" do
+      it 'marks the potential cruft record as deleted' do
+        potential_cruft = create(:potential_cruft, owner_name: 'SomeClassThatDoesNotExist')
+
+        IsThisUsed::CruftCleaner.reset
+        # This is a dummy require. What it's doing is making sure we load a class that uses ITU and thusly triggers the cleaner.
+        require 'dummy_app/models/fixtures/cruft_to_clean1'
+
+        potential_cruft.reload
+        expect(potential_cruft.deleted_at).not_to be_nil
+      end
+    end
+
+    context "when a pre-existing potential cruft record references a public instance method that no longer exists" do
+      it 'marks the potential cruft record as deleted' do
+        potential_cruft = create(:potential_cruft, owner_name: 'Fixtures::CruftToClean2', method_name: 'some_missing_method')
+
+        IsThisUsed::CruftCleaner.reset
+        require 'dummy_app/models/fixtures/cruft_to_clean2'
+
+        potential_cruft.reload
+        expect(potential_cruft.deleted_at).not_to be_nil
+      end
+    end
+
+    context "when a pre-existing potential cruft record references a private instance method that still exists" do
+      it 'does not mark the potential cruft record as deleted' do
+        potential_cruft = create(:potential_cruft, owner_name: 'Fixtures::CruftToClean3', method_name: 'existing_private_method')
+
+        IsThisUsed::CruftCleaner.reset
+        require 'dummy_app/models/fixtures/cruft_to_clean3'
+
+        potential_cruft.reload
+        expect(potential_cruft.deleted_at).to be_nil
+      end
+    end
+
+    context "when a pre-existing potential cruft record references a class method that no longer exists" do
+      it 'marks the potential cruft record as deleted' do
+        fail
+      end
     end
   end
 end

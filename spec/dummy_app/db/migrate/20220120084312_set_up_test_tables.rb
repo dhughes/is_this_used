@@ -11,6 +11,7 @@ class SetUpTestTables < ::ActiveRecord::Migration::Current
       t.string :method_name, null: false
       t.string :method_type, null: false
       t.integer :invocations, null: false, default: 0
+      t.datetime :deleted_at
       t.timestamps
 
       t.index :owner_name
