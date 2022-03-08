@@ -7,4 +7,4 @@ test: &test
   host: <%= ENV.fetch('IS_THIS_USED_DB_HOST', 'localhost') %>
   port: <%= ENV.fetch('IS_THIS_USED_DB_PORT', 3306) %>
   protocol: TCP
-  password: <%= ENV.fetch('IS_THIS_USED_DB_PASSWORD', 3306) %>
+  password: <%= ENV.fetch('IS_THIS_USED_DB_PASSWORD', 'dev') %>

@@ -250,6 +250,12 @@ cp config/database.mysql.yml config/database.yml
 
 Edit the database.yml as needed and fire up your MySQL server.
 
+You'll need to create your database (it doesn't matter which version of rails you specify):
+
+```bash
+bundle exec appraisal rails-6.1 rspec spec
+```
+
 You can now run the test suite:
 
 ### Rails 5.2

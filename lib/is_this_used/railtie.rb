@@ -10,6 +10,8 @@ module IsThisUsed
         puts ">>>> we've initialized?"
         puts ">>>> num of cruft: #{IsThisUsed::PotentialCruft.count}"
       end
+    rescue StandardError
+      # Swallow all errors to prevent initialization failures.
     end
   end
 end
