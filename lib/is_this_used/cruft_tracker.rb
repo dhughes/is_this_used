@@ -87,6 +87,8 @@ module IsThisUsed
               method_type: method_type
             )
 
+          potential_cruft.update(deleted_at: nil) if potential_cruft.deleted_at.present?
+
           IsThisUsed::Registry.instance << potential_cruft
 
           target_method.owner.define_method target_method.name do |*args|

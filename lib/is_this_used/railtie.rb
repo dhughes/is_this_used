@@ -5,7 +5,9 @@ module IsThisUsed
     initializer "is_this_used_railtie.configure_post_initialize_cleanup" do
 
       config.after_initialize do
-        IsThisUsed::CruftCleaner.clean🧹
+        if Rails.application.config.eager_load
+          IsThisUsed::CruftCleaner.clean🧹
+        end
       end
 
     rescue StandardError
