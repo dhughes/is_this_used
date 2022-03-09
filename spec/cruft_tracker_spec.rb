@@ -285,4 +285,21 @@ RSpec.describe IsThisUsed::CruftTracker do
       expect(arguments1.arguments).to eq(%w[x y z])
     end
   end
+
+  context "when deleted potential cruft records exist, but is_this_used? is used to track the same method" do
+    it 'undeletes the record' do
+      potential_cruft =
+        IsThisUsed::PotentialCruft.create(
+          owner_name: 'Fixtures::ExampleCruft21',
+          method_name: 'do_a_thing',
+          method_type: IsThisUsed::CruftTracker::INSTANCE_METHOD,
+          deleted_at: 5.minutes.ago
+        )
+
+      require 'dummy_app/models/fixtures/example_cruft21'
+
+      potential_cruft.reload
+      expect(potential_cruft.deleted_at).to be_nil
+    end
+  end
 end
