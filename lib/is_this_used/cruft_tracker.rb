@@ -107,11 +107,11 @@ module IsThisUsed
             end
           end
         end
-      rescue ActiveRecord::StatementInvalid => e
+      rescue ActiveRecord::StatementInvalid, NoMethodError => e
         raise unless e.cause.present? && e.cause.instance_of?(Mysql2::Error)
 
         Rails.logger.warn(
-          'There was an error recording potential cruft. Does the potential_crufts table exist?'
+          'There was an error recording potential cruft. Does the potential_crufts table exist? Have migrations been run?'
         )
       rescue Mysql2::Error::ConnectionError, ActiveRecord::ConnectionNotEstablished
         Rails.logger.warn(
