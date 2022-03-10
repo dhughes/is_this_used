@@ -200,7 +200,7 @@ RSpec.describe IsThisUsed::CruftTracker do
         'RENAME TABLE potential_crufts TO tmp_potential_crufts'
       )
       expect(Rails.logger).to receive(:warn).with(
-        'There was an error recording potential cruft. Does the potential_crufts table exist?'
+        'There was an error recording potential cruft. Does the potential_crufts table exist? Have migrations been run?'
       )
 
       require 'dummy_app/models/fixtures/example_cruft13'
