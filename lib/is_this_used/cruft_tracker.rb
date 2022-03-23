@@ -80,12 +80,11 @@ module IsThisUsed
           method_type ||= determine_method_type(method_name)
           target_method = target_method(method_name, method_type)
 
-          potential_cruft =
-            PotentialCruft.find_or_create_by(
-              owner_name: self.name,
-              method_name: method_name,
-              method_type: method_type
-            )
+          potential_cruft = create_or_find_potential_cruft(
+            owner_name: self.name,
+            method_name: method_name,
+            method_type: method_type
+          )
 
           potential_cruft.update(deleted_at: nil) if potential_cruft.deleted_at.present?
 
@@ -149,6 +148,17 @@ module IsThisUsed
         else
           raise NoSuchMethod.new(self.name, method_name)
         end
+      end
+
+      def create_or_find_potential_cruft(owner_name:, method_name:, method_type:)
+        PotentialCruft.find_or_create_by(owner_name: self.name,
+                                         method_name: method_name,
+                                         method_type: method_type)
+
+      rescue ActiveRecord::RecordNotUnique => e
+        PotentialCruft.find_by(owner_name: self.name,
+                               method_name: method_name,
+                               method_type: method_type)
       end
     end
   end
