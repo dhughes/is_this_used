@@ -21,18 +21,26 @@ module IsThisUsed
 
         potential_cruft_stack =
           PotentialCruftStack.find_by(
-            potential_cruft: potential_cruft, stack_hash: stack_hash
-          )
-        potential_cruft_stack ||=
-          PotentialCruftStack.new(
-            potential_cruft: potential_cruft,
-            stack_hash: stack_hash,
-            stack: stack
+            stack_hash: stack_hash
           )
 
-        potential_cruft_stack.occurrences += 1
+        potential_cruft_stack ||= begin
+                                    PotentialCruftStack.create(
+                                      potential_cruft: potential_cruft,
+                                      stack_hash: stack_hash,
+                                      stack: stack
+                                    )
+                                  rescue ActiveRecord::RecordNotUnique
+                                    PotentialCruftStack.find_by(
+                                      stack_hash: stack_hash
+                                    )
+                                  end
 
-        potential_cruft_stack.save
+        potential_cruft_stack.with_lock do
+          potential_cruft_stack.reload
+          potential_cruft_stack.occurrences += 1
+          potential_cruft_stack.save!
+        end
       end
 
       def self.filtered_stack
@@ -55,18 +63,24 @@ module IsThisUsed
 
         potential_cruft_argument =
           PotentialCruftArgument.find_by(
-            potential_cruft: potential_cruft, arguments_hash: arguments_hash
+            arguments_hash: arguments_hash
           )
-        potential_cruft_argument ||=
-          PotentialCruftArgument.new(
-            potential_cruft: potential_cruft,
-            arguments_hash: arguments_hash,
-            arguments: arguments
-          )
+        potential_cruft_argument ||= begin
+                                       PotentialCruftArgument.create(
+                                         potential_cruft: potential_cruft,
+                                         arguments_hash: arguments_hash,
+                                         arguments: arguments
+                                       )
+                                     rescue ActiveRecord::RecordNotUnique
+                                       PotentialCruftArgument.find_by(
+                                         arguments_hash: arguments_hash
+                                       )
+                                     end
 
-        potential_cruft_argument.occurrences += 1
-
-        potential_cruft_argument.save
+        potential_cruft_argument.with_lock do
+          potential_cruft_argument.occurrences += 1
+          potential_cruft_argument.save!
+        end
       end
     end
 
@@ -81,7 +95,6 @@ module IsThisUsed
           target_method = target_method(method_name, method_type)
 
           potential_cruft = create_or_find_potential_cruft(
-            owner_name: self.name,
             method_name: method_name,
             method_type: method_type
           )
@@ -150,12 +163,12 @@ module IsThisUsed
         end
       end
 
-      def create_or_find_potential_cruft(owner_name:, method_name:, method_type:)
+      def create_or_find_potential_cruft(method_name:, method_type:)
         PotentialCruft.find_or_create_by(owner_name: self.name,
                                          method_name: method_name,
                                          method_type: method_type)
 
-      rescue ActiveRecord::RecordNotUnique => e
+      rescue ActiveRecord::RecordNotUnique
         PotentialCruft.find_by(owner_name: self.name,
                                method_name: method_name,
                                method_type: method_type)
