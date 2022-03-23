@@ -26,6 +26,37 @@ RSpec.describe IsThisUsed::CruftTracker do
     expect(hello_method.invocations).to eq(0)
   end
 
+  context 'in the case of a race condition' do
+    it 'does not create two copies of the same cruft record' do
+      starting_pistol_has_been_fired = false
+
+      threads = 10.times.map do
+        Thread.new do
+          true while !starting_pistol_has_been_fired
+          Class.new do
+            include IsThisUsed::CruftTracker
+
+            def self.name
+              "SomeClassName"
+            end
+
+            def foo; end
+            is_this_used? :foo
+          end
+        end
+      end
+      starting_pistol_has_been_fired = true
+      threads.each(&:join)
+
+      crufts = IsThisUsed::PotentialCruft.where(
+        owner_name: 'SomeClassName',
+        method_name: 'foo',
+        method_type: IsThisUsed::CruftTracker::INSTANCE_METHOD
+      )
+      expect(crufts.count).to eq(1)
+    end
+  end
+
   it 'tracks when a method is invoked' do
     require 'dummy_app/models/fixtures/example_cruft2'
 
