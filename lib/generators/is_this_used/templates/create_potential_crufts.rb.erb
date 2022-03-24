@@ -11,7 +11,10 @@ class CreatePotentialCrufts < ActiveRecord::Migration<%= migration_version %>
 
       t.index :owner_name
       t.index :method_name
-      t.index %i(owner_name method_name)
+      t.index %i[owner_name method_name]
+      t.index %i[owner_name method_name method_type],
+              unique: true,
+              name: 'index_pc_on_owner_name_and_method_name_and_method_type'
     end
   end
 end

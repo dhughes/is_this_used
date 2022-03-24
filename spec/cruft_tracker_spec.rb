@@ -26,6 +26,35 @@ RSpec.describe IsThisUsed::CruftTracker do
     expect(hello_method.invocations).to eq(0)
   end
 
+  it 'does not create multiple of the same cruft record in a race condition' do
+    starting_pistol_has_been_fired = false
+
+    threads = 10.times.map do
+      Thread.new do
+        true while !starting_pistol_has_been_fired
+        Class.new do
+          include IsThisUsed::CruftTracker
+
+          def self.name
+            "SomeClassName"
+          end
+
+          def foo; end
+          is_this_used? :foo
+        end
+      end
+    end
+    starting_pistol_has_been_fired = true
+    threads.each(&:join)
+
+    crufts = IsThisUsed::PotentialCruft.where(
+      owner_name: 'SomeClassName',
+      method_name: 'foo',
+      method_type: IsThisUsed::CruftTracker::INSTANCE_METHOD
+    )
+    expect(crufts.count).to eq(1)
+  end
+
   it 'tracks when a method is invoked' do
     require 'dummy_app/models/fixtures/example_cruft2'
 
@@ -63,6 +92,28 @@ RSpec.describe IsThisUsed::CruftTracker do
       expect(stacks.second.occurrences).to eq(2)
       expect(stacks.second.stack.first['base_label']).to eq('do_it')
     end
+  end
+
+  it 'does not create multiple of the same stack record in a race condition' do
+    starting_pistol_has_been_fired = false
+    require 'dummy_app/models/fixtures/example_cruft22'
+
+    threads = 10.times.map do
+      Thread.new do
+        true while !starting_pistol_has_been_fired
+        Fixtures::ExampleCruft22.new.do_something
+      end
+    end
+    starting_pistol_has_been_fired = true
+    threads.each(&:join)
+
+    expect(IsThisUsed::PotentialCruftStack.count).to eq(1)
+    # I'm not asserting the exact number of occurrences because we still have a race condition
+    # related to having loaded multiple instances of PotentialCruftStack in memory and I don't want
+    # to have to jump through a zillion hoops to have exactly correct counts. It's not worth the
+    # effort and the impact is low. We could conceivably lose a few occurrence increments, but who
+    # cares?
+    expect(IsThisUsed::PotentialCruftStack.first.occurrences).to be > 1
   end
 
   context 'when the method does not exist' do
@@ -266,6 +317,29 @@ RSpec.describe IsThisUsed::CruftTracker do
       arguments2 = potential_cruft.potential_cruft_arguments.second
       expect(arguments2.arguments).to eq([2, "blargh", true, [2, "baz", false], [{ "a" => 1, "b" => "bar" }, { "a" => 2, "b" => "foo" }], { "x" => 213, "y" => true, "z" => "whatever" }])
       expect(arguments2.occurrences).to eq(2)
+    end
+
+    it 'does not create multiple of the same arguments record in a race condition' do
+      starting_pistol_has_been_fired = false
+      require 'dummy_app/models/fixtures/example_cruft23'
+
+      threads = 10.times.map do
+        Thread.new do
+          true while !starting_pistol_has_been_fired
+          example = Fixtures::ExampleCruft23.new
+          example.do_something(1, "blargh", true, [2, "baz", false], [{ a: 1, b: "bar" }, { a: 2, b: "foo" }], x: 213, y: true, z: "whatever")
+        end
+      end
+      starting_pistol_has_been_fired = true
+      threads.each(&:join)
+
+      expect(IsThisUsed::PotentialCruftArgument.count).to eq(1)
+      # I'm not asserting the exact number of occurrences because we still have a race condition
+      # related to having loaded multiple instances of PotentialCruftStack in memory and I don't want
+      # to have to jump through a zillion hoops to have exactly correct counts. It's not worth the
+      # effort and the impact is low. We could conceivably lose a few occurrence increments, but who
+      # cares?
+      expect(IsThisUsed::PotentialCruftArgument.first.occurrences).to be > 1
     end
   end
 

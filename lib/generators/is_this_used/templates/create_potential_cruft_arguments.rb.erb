@@ -7,6 +7,10 @@ class CreatePotentialCruftArguments < ActiveRecord::Migration<%= migration_versi
       t.json :arguments, null: false
       t.integer :occurrences, null: false, index: true, default: 0
       t.timestamps
+
+      t.index %i[potential_cruft_id arguments_hash],
+              unique: true,
+              name: 'index_pca_on_potential_cruft_id_and_arguments_hash'
     end
   end
 end
