@@ -40,6 +40,8 @@ actually occur.
 
 ## Usage
 
+### `is_this_used?`
+
 is_this_used is pretty simple. Let's say you have a class (or module) like this...
 
 ```ruby
@@ -75,7 +77,7 @@ in the `potential_crufts` table that looks like this:
 
 | id  | owner_name   | method_name     | method_type     | invocations | deleted_at | created_at          | updated_at          |
 | --- | ------------ | --------------- | --------------- | ----------- | ---------- | ------------------- | ------------------- |
-| 1   | SomeOldClass | some_old_method | instance_method | 0           | null       | 2022-01-21 14:07:48 | 2022-01-21 14:07:48 | 
+| 1   | SomeOldClass | some_old_method | instance_method | 0           | null       | 2022-01-21 14:07:48 | 2022-01-21 14:07:48 |
 
 This is easily accessed using the `IsThisUsed::PotentialCruft` model class.
 
@@ -102,7 +104,7 @@ So, having annotated the method, you can check this table after a while. If you 
 you have a reasonably good hint that the method may not actually be used. Of course, you should consider that there are
 some processes that are not run frequently at all, so this gem isn't a panacea. Think before you delete!
 
-### Tracking Stacks
+#### Tracking Stacks
 
 In the case that a method _is_ actually invoked, the `invocations` value is incremented and a record is created in
 the `potential_cruft_stacks` table for each unique invocation stacktrace. This can be used to determine which methods
@@ -148,7 +150,7 @@ The `label` and `base_label` fields come from Ruby's `Thread::Backtrace::Locatio
 difference is, as the docs simply say this about `base_label`: "Usually same as label, without decoration". 🤷 Anyhow,
 it's there if you need it.
 
-### Tracking Arguments
+#### Tracking Arguments
 
 In addition to tracking stacks, you can track details about arguments provided to tracked methods. For example, let's say you have the following method:
 
@@ -196,8 +198,11 @@ The above would result in the following records in `potential_cruft_arguments` (
 | 1619ec6af47253461e87ebf1923a8a83 | ["color", "locality"]          | 1           |
 | 88c8205498de97d4ef06b249006bb68b | ["status"]                     | 1           |
 
+### `is_any_of_this_stuff_used?`
 
+Let's say you have a class and you're wondering what, if anything, in that class is used. You probably don't want to tag every single method in that class with `is_this_used?`. Instead, you can add `is_any_of_this_stuff_used?` as the last line in that class. When the class is loaded, is_this_used will identify all of the instance and class methods defined directly on the object itself and track each one of those, just as if you'd tagged them individually with `is_this_used?`.
 
+The `is_any_of_this_stuff_used?` method does not accept any arguments and cannot be used to track arguments. However, you can use both `is_this_used?` and `is_any_of_this_stuff_used?` at the same time. If you want to track everything in a class, but track arguments for a specific method, simply tag that method with `is_this_used?` and specify the `track_arguments` argument. Be sure to place `is_any_of_this_stuff_used?` as the last line within the class. Now that one method will have its arguments tracked while the others will simply be tracked normally.
 
 ## Models
 

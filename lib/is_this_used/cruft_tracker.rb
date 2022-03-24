@@ -89,9 +89,17 @@ module IsThisUsed
     end
 
     module ClassMethods
+      def potentially_crufty_methods_being_tracked
+        @potentially_crufty_methods_being_tracked ||= []
+      end
+
       def is_this_used?(method_name, method_type: nil, track_arguments: false)
         IsThisUsed::Util::LogSuppressor.suppress_logging do
           method_type ||= determine_method_type(method_name)
+
+          tracked_method_identifier = "#{method_name}/#{method_type}"
+          return if potentially_crufty_methods_being_tracked.include?(tracked_method_identifier)
+
           target_method = target_method(method_name, method_type)
 
           potential_cruft = create_or_find_potential_cruft(
@@ -118,6 +126,8 @@ module IsThisUsed
               target_method.call(*args)
             end
           end
+
+          potentially_crufty_methods_being_tracked << tracked_method_identifier
         end
       rescue ActiveRecord::StatementInvalid => e
         raise unless e.cause.present? && e.cause.instance_of?(Mysql2::Error)
@@ -135,6 +145,15 @@ module IsThisUsed
         )
       end
 
+      def is_any_of_this_stuff_used?
+        own_instance_methods.each do |instance_method|
+          is_this_used?(instance_method, method_type: INSTANCE_METHOD)
+        end
+        own_class_methods.each do |class_method|
+          is_this_used?(class_method, method_type: CLASS_METHOD)
+        end
+      end
+
       def target_method(method_name, method_type)
         case method_type
         when INSTANCE_METHOD
@@ -145,12 +164,8 @@ module IsThisUsed
       end
 
       def determine_method_type(method_name)
-        is_instance_method =
-          (self.instance_methods + self.private_instance_methods).include?(
-            method_name
-          )
-        is_class_method =
-          (self.methods + self.private_methods).include?(method_name)
+        is_instance_method = all_instance_methods(self).include?(method_name)
+        is_class_method = all_class_methods(self).include?(method_name)
 
         if is_instance_method && is_class_method
           raise AmbiguousMethodType.new(self.name, method_name)
@@ -161,6 +176,36 @@ module IsThisUsed
         else
           raise NoSuchMethod.new(self.name, method_name)
         end
+      end
+
+      def all_instance_methods(object)
+        object.instance_methods + object.private_instance_methods
+      end
+
+      def all_class_methods(object)
+        object.methods + object.private_methods
+      end
+
+      def own_instance_methods
+        ancestors_instance_methods =
+          (self.ancestors - [self])
+            .map {|ancestor| all_instance_methods(ancestor)}
+            .flatten
+            .uniq
+
+        all_instance_methods(self) - ancestors_instance_methods
+      end
+
+      def own_class_methods
+        ancestors_class_methods =
+          (self.ancestors - [self])
+            .map {|ancestor| all_class_methods(ancestor)}
+            .flatten
+            .uniq
+
+        all_class_methods(self) -
+          all_instance_methods(IsThisUsed::CruftTracker::ClassMethods) -
+          ancestors_class_methods
       end
 
       def create_or_find_potential_cruft(method_name:, method_type:)

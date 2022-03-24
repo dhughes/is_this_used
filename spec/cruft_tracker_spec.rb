@@ -376,4 +376,46 @@ RSpec.describe IsThisUsed::CruftTracker do
       expect(potential_cruft.deleted_at).to be_nil
     end
   end
+
+  describe '#is_any_of_this_stuff_used?' do
+    it 'tracks invocations of all class and instance methods in a class' do
+      require 'dummy_app/models/fixtures/example_cruft24'
+
+      expect(IsThisUsed::PotentialCruft.count).to eq(6)
+
+      2.times { Fixtures::ExampleCruft24.do_a_thing }
+      3.times { Fixtures::ExampleCruft24.be_sneaky }
+      cruft = Fixtures::ExampleCruft24.new
+      2.times { cruft.do_something }
+      3.times { cruft.do_something_protectidly }
+      2.times { cruft.do_something_privately }
+      cruft.do_something_argumentatively('Favorite Color')
+
+      expect(IsThisUsed::PotentialCruft.find_by(
+        owner_name: Fixtures::ExampleCruft24.to_s,
+        method_name: :do_a_thing,
+        method_type: IsThisUsed::CruftTracker::CLASS_METHOD
+      ).invocations).to eq(2)
+      expect(IsThisUsed::PotentialCruft.find_by(
+        owner_name: Fixtures::ExampleCruft24.to_s,
+        method_name: :be_sneaky,
+        method_type: IsThisUsed::CruftTracker::CLASS_METHOD
+      ).invocations).to eq(3)
+      expect(IsThisUsed::PotentialCruft.find_by(
+        owner_name: Fixtures::ExampleCruft24.to_s,
+        method_name: :do_something,
+        method_type: IsThisUsed::CruftTracker::INSTANCE_METHOD
+      ).invocations).to eq(2)
+      expect(IsThisUsed::PotentialCruft.find_by(
+        owner_name: Fixtures::ExampleCruft24.to_s,
+        method_name: :do_something_privately,
+        method_type: IsThisUsed::CruftTracker::INSTANCE_METHOD
+      ).invocations).to eq(2)
+      expect(IsThisUsed::PotentialCruft.find_by(
+        owner_name: Fixtures::ExampleCruft24.to_s,
+        method_name: :do_something_argumentatively,
+        method_type: IsThisUsed::CruftTracker::INSTANCE_METHOD
+      ).invocations).to eq(1)
+    end
+  end
 end
