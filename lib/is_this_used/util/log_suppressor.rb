@@ -7,6 +7,7 @@ module IsThisUsed
         initial_log_level = ActiveRecord::Base.logger.level
         ActiveRecord::Base.logger.level = :error
         yield
+      ensure
         ActiveRecord::Base.logger.level = initial_log_level
       end
     end
