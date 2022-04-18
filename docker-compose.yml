@@ -2,7 +2,7 @@ version: '3'
 services:
   mysql:
     image: mysql:8
-    container_name: square-mysql
+    container_name: is-this-used-mysql
     command: --default-authentication-plugin=mysql_native_password
     volumes:
       - db_data:/var/lib/mysql

@@ -9,8 +9,7 @@ class CreatePotentialCruftStacks < ActiveRecord::Migration<%= migration_version 
       t.timestamps
 
       t.index %i[potential_cruft_id stack_hash],
-              unique: true,
-              name: 'index_pcs_on_potential_cruft_id_and_stack_hash'
+              unique: trueigra
     end
   end
 end
